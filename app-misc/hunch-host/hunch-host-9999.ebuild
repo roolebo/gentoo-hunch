@@ -11,6 +11,8 @@ inherit cargo git-r3 systemd
 DESCRIPTION="Serves a host's roles to hunch: window managers, seat, compute"
 HOMEPAGE="https://github.com/roolebo/hunch"
 EGIT_REPO_URI="https://github.com/roolebo/hunch.git"
+# The multihost series, under review
+EGIT_BRANCH="hosts"
 S="${WORKDIR}/${P}/host"
 
 # The crates are MIT or offer it, and unicode-ident adds Unicode-3.0
@@ -44,6 +46,24 @@ src_install() {
 		> "${T}/hunch-host.service" || die
 	systemd_douserunit "${T}/hunch-host.service"
 	dodoc README.md
+	use browser && install_firefox_host
+}
+
+# What hunch-host browser install firefox does for a user, for all users:
+# the name hunch-host knows to connect by, and the manifest naming it
+install_firefox_host() {
+	dosym -r /usr/bin/hunch-host /usr/libexec/hunch/hunch-host-native
+	cat > "${T}/hunch.json" <<-EOF || die
+		{
+		  "name": "hunch",
+		  "description": "hunch-host, which serves the browser to hunch",
+		  "path": "${EPREFIX}/usr/libexec/hunch/hunch-host-native",
+		  "type": "stdio",
+		  "allowed_extensions": ["firefox-hunch@hunch"]
+		}
+	EOF
+	insinto /usr/lib/mozilla/native-messaging-hosts
+	doins "${T}/hunch.json"
 }
 
 pkg_postinst() {

@@ -1,23 +1,33 @@
 # hunch-gentoo
 
-A Gentoo overlay with hunch-host, built from hunch's git.
+A Gentoo overlay with hunch, built from git:
 
-    eselect repository add hunch git https://github.com/roolebo/hunch-gentoo.git
-    emaint sync -r hunch
-    echo 'app-misc/hunch-host **' > /etc/portage/package.accept_keywords/hunch-host
-    emerge app-misc/hunch-host
+- `app-misc/hunch-host`: hunch-host, with its user unit, and the native
+  messaging host that lets Firefox's extension reach it
+- `www-plugins/firefox-hunch`: the extension, for all users
 
-A live ebuild has no keywords, hence the `**`.
+Its branch `hosts` builds the multihost series, from the branches
+`hosts` of hunch and firefox-hunch, which are rewritten while under
+review.
 
-To build a branch of another clone instead, e.g. one not pushed yet:
-
-    cat > /etc/portage/env/hunch-local.conf << EOF
-    EGIT_OVERRIDE_REPO_ROOLEBO_HUNCH=ssh://HOST/path/to/hunch
-    EGIT_OVERRIDE_BRANCH_ROOLEBO_HUNCH=host
+    cat > /etc/portage/repos.conf/hunch.conf << EOF
+    [hunch]
+    location = /var/db/repos/hunch
+    sync-type = git
+    sync-uri = https://github.com/roolebo/hunch-gentoo.git
+    sync-git-clone-extra-opts = --branch hosts
     EOF
-    echo 'app-misc/hunch-host hunch-local.conf' >> /etc/portage/package.env
+    emaint sync -r hunch
+    printf '%s **\n' app-misc/hunch-host www-plugins/firefox-hunch \
+        > /etc/portage/package.accept_keywords/hunch
+    emerge app-misc/hunch-host www-plugins/firefox-hunch
 
-USE flags:
+Live ebuilds have no keywords, hence the `**`. To build what the
+branches hold now:
+
+    emerge -1 app-misc/hunch-host www-plugins/firefox-hunch
+
+USE flags of hunch-host:
 
 - `browser`: serve the browser at this seat, and link to the hosts the
   seat allows
