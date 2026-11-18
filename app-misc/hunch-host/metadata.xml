@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "https://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+	<maintainer type="person">
+		<name>Roman Bolshakov</name>
+	</maintainer>
+	<use>
+		<flag name="browser">Serve the browser at this seat to hunch, and link to the hosts the seat allows</flag>
+		<flag name="compute">Run speech models here, with ggml on the CPU</flag>
+	</use>
+	<upstream>
+		<remote-id type="github">roolebo/hunch</remote-id>
+	</upstream>
+</pkgmetadata>
