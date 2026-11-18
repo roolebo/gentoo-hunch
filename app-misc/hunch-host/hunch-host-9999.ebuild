@@ -18,10 +18,20 @@ S="${WORKDIR}/${P}/host"
 # The crates are MIT or offer it, and unicode-ident adds Unicode-3.0
 LICENSE="MIT Unicode-3.0"
 SLOT="0"
-IUSE="+browser +compute"
+IUSE="+browser +compute gnome +seat"
+# The extension serves the seat's desktop, and is its tray
+REQUIRED_USE="gnome? ( seat )"
 
-# compute builds ggml
-BDEPEND="compute? ( dev-build/cmake )"
+# compute builds ggml; the seat records through ALSA
+DEPEND="seat? ( media-libs/alsa-lib )"
+RDEPEND="
+	${DEPEND}
+	gnome? ( gnome-base/gnome-shell )
+"
+BDEPEND="
+	compute? ( dev-build/cmake )
+	seat? ( virtual/pkgconfig )
+"
 
 src_unpack() {
 	git-r3_src_unpack
@@ -36,6 +46,7 @@ src_configure() {
 		wm
 		$(usev browser)
 		$(usev compute)
+		$(usev seat)
 	)
 	cargo_src_configure --no-default-features
 }
@@ -47,6 +58,10 @@ src_install() {
 	systemd_douserunit "${T}/hunch-host.service"
 	dodoc README.md
 	use browser && install_firefox_host
+	if use gnome; then
+		insinto /usr/share/gnome-shell/extensions
+		doins -r ../gnome/hunch@hunch
+	fi
 }
 
 # What hunch-host browser install firefox does for a user, for all users:
@@ -69,4 +84,12 @@ install_firefox_host() {
 pkg_postinst() {
 	elog "Each user runs the service with:"
 	elog "  systemctl --user enable --now hunch-host"
+	if use seat; then
+		elog "The dictation key comes from evdev, which takes the group input:"
+		elog "  usermod -aG input USER, then log in again"
+	fi
+	if use gnome; then
+		elog "Then, in GNOME:"
+		elog "  gnome-extensions enable hunch@hunch"
+	fi
 }

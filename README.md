@@ -33,3 +33,6 @@ USE flags of hunch-host:
   seat allows
 - `compute`: run speech models here, on the CPU; a weak host leaves it
   off and transcribes on another host
+- `seat`: take dictation at this host, with its keys and microphone
+- `gnome`: GNOME Shell's extension, which types the dictation into
+  GNOME's windows and shows the seat in the top bar
