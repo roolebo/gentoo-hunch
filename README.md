@@ -4,7 +4,10 @@ A Gentoo overlay with hunch-host, built from hunch's git.
 
     eselect repository add hunch git https://github.com/roolebo/hunch-gentoo.git
     emaint sync -r hunch
+    echo 'app-misc/hunch-host **' > /etc/portage/package.accept_keywords/hunch-host
     emerge app-misc/hunch-host
+
+A live ebuild has no keywords, hence the `**`.
 
 To build a branch of another clone instead, e.g. one not pushed yet:
 
