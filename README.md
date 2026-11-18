@@ -1,4 +1,4 @@
-# hunch-gentoo
+# gentoo-hunch
 
 A Gentoo overlay with hunch, built from git:
 
@@ -14,7 +14,7 @@ review.
     [hunch]
     location = /var/db/repos/hunch
     sync-type = git
-    sync-uri = https://github.com/roolebo/hunch-gentoo.git
+    sync-uri = https://github.com/roolebo/gentoo-hunch.git
     sync-git-clone-extra-opts = --branch hosts
     EOF
     emaint sync -r hunch
