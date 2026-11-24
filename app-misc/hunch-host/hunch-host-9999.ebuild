@@ -23,8 +23,10 @@ REQUIRED_USE="gnome? ( seat )"
 
 # compute builds ggml; the seat records through ALSA
 DEPEND="seat? ( media-libs/alsa-lib )"
+# secret-tool keeps the keys of hosts' servers
 RDEPEND="
 	${DEPEND}
+	seat? ( app-crypt/libsecret )
 	app-misc/jq
 	app-misc/tmux
 	gnome? ( gnome-base/gnome-shell )
