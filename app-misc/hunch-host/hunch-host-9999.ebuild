@@ -21,7 +21,8 @@ IUSE="+compute gnome +seat"
 # The extension serves the seat's desktop, and draws its menu
 REQUIRED_USE="gnome? ( seat )"
 
-# compute builds ggml; the seat records through ALSA
+# compute builds ggml, and the seat libopus, with cmake; the seat records
+# through ALSA
 DEPEND="seat? ( media-libs/alsa-lib )"
 # secret-tool keeps the keys of hosts' servers
 RDEPEND="
@@ -33,7 +34,10 @@ RDEPEND="
 "
 BDEPEND="
 	compute? ( dev-build/cmake )
-	seat? ( virtual/pkgconfig )
+	seat? (
+		dev-build/cmake
+		virtual/pkgconfig
+	)
 "
 
 src_unpack() {
