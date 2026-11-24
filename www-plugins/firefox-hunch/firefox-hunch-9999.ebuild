@@ -8,14 +8,14 @@ inherit git-r3
 DESCRIPTION="Lets an agent read the page the human works on, through hunch"
 HOMEPAGE="https://github.com/roolebo/firefox-hunch"
 EGIT_REPO_URI="https://github.com/roolebo/firefox-hunch.git"
-# The multihost series, under review
+# Native messaging, which hunch's hosts branch serves
 EGIT_BRANCH="hosts"
 
 LICENSE="MIT"
 SLOT="0"
 
-# It talks to hunch-host by native messaging
-RDEPEND="app-misc/hunch-host[browser]"
+# It talks to hunch-browser-native, by native messaging
+RDEPEND="app-misc/hunch-host"
 
 # Firefox's id, under which it looks for the extensions of all users
 FIREFOX="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"

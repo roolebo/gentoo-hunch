@@ -5,9 +5,8 @@
 		<name>Roman Bolshakov</name>
 	</maintainer>
 	<use>
-		<flag name="browser">Serve the browser at this seat to hunch, and link to the hosts the seat allows</flag>
-		<flag name="compute">Run speech models here, with ggml on the CPU</flag>
-		<flag name="gnome">GNOME Shell's extension: serve its desktop to hunch, and show the seat in the top bar</flag>
+		<flag name="compute">Run speech models here, with ggml on the CPU, for this seat or another host's</flag>
+		<flag name="gnome">GNOME Shell's extension: serve its desktop to the seat, and draw the seat's menu in the top bar</flag>
 		<flag name="seat">Take dictation at this host: its keys, from evdev, and its microphone</flag>
 	</use>
 	<upstream>

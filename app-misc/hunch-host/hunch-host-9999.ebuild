@@ -3,29 +3,30 @@
 
 EAPI=8
 
-# Edition 2024
-RUST_MIN_VER="1.85.0"
+# Edition 2024, and as_chunks
+RUST_MIN_VER="1.88.0"
 
 inherit cargo git-r3 systemd
 
-DESCRIPTION="Serves a host's roles to hunch: window managers, seat, compute"
+DESCRIPTION="hunch: the tree of the human's devices, the seat, and their tools"
 HOMEPAGE="https://github.com/roolebo/hunch"
 EGIT_REPO_URI="https://github.com/roolebo/hunch.git"
-# The multihost series, under review
+# The series, under review
 EGIT_BRANCH="hosts"
-S="${WORKDIR}/${P}/host"
 
 # The crates are MIT or offer it, and unicode-ident adds Unicode-3.0
 LICENSE="MIT Unicode-3.0"
 SLOT="0"
-IUSE="+browser +compute gnome +seat"
-# The extension serves the seat's desktop, and is its tray
+IUSE="+compute gnome +seat"
+# The extension serves the seat's desktop, and draws its menu
 REQUIRED_USE="gnome? ( seat )"
 
 # compute builds ggml; the seat records through ALSA
 DEPEND="seat? ( media-libs/alsa-lib )"
 RDEPEND="
 	${DEPEND}
+	app-misc/jq
+	app-misc/tmux
 	gnome? ( gnome-base/gnome-shell )
 "
 BDEPEND="
@@ -36,43 +37,70 @@ BDEPEND="
 src_unpack() {
 	git-r3_src_unpack
 	# It fetches the crates of the Cargo.toml in the current directory
-	pushd "${S}" > /dev/null || die
-	cargo_live_src_unpack
-	popd > /dev/null || die
+	local crate
+	for crate in host seat; do
+		pushd "${S}/${crate}" > /dev/null || die
+		cargo_live_src_unpack
+		popd > /dev/null || die
+	done
 }
 
 src_configure() {
-	local myfeatures=(
-		wm
-		$(usev browser)
-		$(usev compute)
-		$(usev seat)
-	)
-	cargo_src_configure --no-default-features
+	# Each crate takes its own features at build
+	:
 }
 
-src_install() {
-	dobin "$(cargo_target_dir)/hunch-host"
-	sed "s|@HUNCH_HOST@|${EPREFIX}/usr/bin/hunch-host|" dist/hunch-host.service \
-		> "${T}/hunch-host.service" || die
-	systemd_douserunit "${T}/hunch-host.service"
-	dodoc README.md
-	use browser && install_firefox_host
-	if use gnome; then
-		insinto /usr/share/gnome-shell/extensions
-		doins -r ../gnome/hunch@hunch
+src_compile() {
+	pushd host > /dev/null || die
+	cargo_src_compile
+	popd > /dev/null || die
+	if use seat || use compute; then
+		local features=wm
+		use seat && features+=,seat
+		use compute && features+=,compute
+		pushd seat > /dev/null || die
+		cargo_src_compile --no-default-features --features "${features}"
+		popd > /dev/null || die
 	fi
 }
 
-# What hunch-host browser install firefox does for a user, for all users:
-# the name hunch-host knows to connect by, and the manifest naming it
+src_test() {
+	pushd host > /dev/null || die
+	cargo_src_test
+	popd > /dev/null || die
+}
+
+src_install() {
+	pushd host > /dev/null || die
+	dobin "$(cargo_target_dir)"/{hunch-host,hunch-9p,hunch-browser-native}
+	popd > /dev/null || die
+	dobin hunch hunch-editor hunch-browser
+	install_firefox_host
+	if use seat || use compute; then
+		pushd seat > /dev/null || die
+		dobin "$(cargo_target_dir)/hunch-seat"
+		sed "s|@HUNCH_SEAT@|${EPREFIX}/usr/bin/hunch-seat|" \
+			dist/hunch-seat.service > "${T}/hunch-seat.service" || die
+		systemd_douserunit "${T}/hunch-seat.service"
+		newdoc README.md README.seat.md
+		popd > /dev/null || die
+	fi
+	insinto /usr/share/hunch
+	doins -r skills
+	dodoc README.md
+	if use gnome; then
+		insinto /usr/share/gnome-shell/extensions
+		doins -r gnome/hunch@hunch
+	fi
+}
+
+# What hunch-browser-native --install does for a user, for all users
 install_firefox_host() {
-	dosym -r /usr/bin/hunch-host /usr/libexec/hunch/hunch-host-native
 	cat > "${T}/hunch.json" <<-EOF || die
 		{
 		  "name": "hunch",
-		  "description": "hunch-host, which serves the browser to hunch",
-		  "path": "${EPREFIX}/usr/libexec/hunch/hunch-host-native",
+		  "description": "hunch-browser-native, which serves the browser to hunch",
+		  "path": "${EPREFIX}/usr/bin/hunch-browser-native",
 		  "type": "stdio",
 		  "allowed_extensions": ["firefox-hunch@hunch"]
 		}
@@ -82,8 +110,12 @@ install_firefox_host() {
 }
 
 pkg_postinst() {
-	elog "Each user runs the service with:"
-	elog "  systemctl --user enable --now hunch-host"
+	elog "Agents use the skill in ${EPREFIX}/usr/share/hunch/skills/hunch:"
+	elog "  ln -s ${EPREFIX}/usr/share/hunch/skills/hunch ~/.claude/skills/hunch"
+	if use seat || use compute; then
+		elog "Each user runs the seat's service with:"
+		elog "  systemctl --user enable --now hunch-seat"
+	fi
 	if use seat; then
 		elog "The dictation key comes from evdev, which takes the group input:"
 		elog "  usermod -aG input USER, then log in again"
