@@ -76,6 +76,9 @@ src_install() {
 	pushd host > /dev/null || die
 	dobin "$(cargo_target_dir)"/{hunch-host,hunch-9p,hunch-browser-native}
 	popd > /dev/null || die
+	sed "s|@HUNCH_HOST@|${EPREFIX}/usr/bin/hunch-host|" \
+		host/dist/hunch-host.service > "${T}/hunch-host.service" || die
+	systemd_douserunit "${T}/hunch-host.service"
 	dobin hunch hunch-editor hunch-browser
 	install_firefox_host
 	if use seat || use compute; then
@@ -112,6 +115,10 @@ install_firefox_host() {
 }
 
 pkg_postinst() {
+	elog "Each user runs hunch-host with:"
+	elog "  systemctl --user enable --now hunch-host"
+	elog "and after an upgrade restarts what runs the old build:"
+	elog "  systemctl --user restart hunch-host hunch-seat"
 	elog "Agents use the skill in ${EPREFIX}/usr/share/hunch/skills/hunch:"
 	elog "  ln -s ${EPREFIX}/usr/share/hunch/skills/hunch ~/.claude/skills/hunch"
 	if use seat || use compute; then
