@@ -5,8 +5,8 @@
 		<name>Roman Bolshakov</name>
 	</maintainer>
 	<use>
-		<flag name="compute">Run speech models here, with ggml on the CPU, for this seat or another host's</flag>
 		<flag name="gnome">GNOME Shell's extension: serve its desktop to the seat, and draw the seat's menu in the top bar</flag>
+		<flag name="inference">Serve local:, speech models run here with ggml on the CPU, for the workspace to mount</flag>
 		<flag name="seat">Take dictation at this host: its keys, from evdev, and its microphone</flag>
 	</use>
 	<upstream>

@@ -17,23 +17,23 @@ EGIT_BRANCH="hosts"
 # The crates are MIT or offer it, and unicode-ident adds Unicode-3.0
 LICENSE="MIT Unicode-3.0"
 SLOT="0"
-IUSE="+compute gnome +seat"
+IUSE="gnome +inference +seat"
 # The extension serves the seat's desktop, and draws its menu
 REQUIRED_USE="gnome? ( seat )"
 
-# compute builds ggml, and the seat libopus, with cmake; the seat records
-# through ALSA
+# inference builds ggml, and the seat libopus, with cmake; the seat
+# records through ALSA
 DEPEND="seat? ( media-libs/alsa-lib )"
-# secret-tool keeps the keys of hosts' servers
+# secret-tool keeps the keys of inference's servers
 RDEPEND="
 	${DEPEND}
-	seat? ( app-crypt/libsecret )
+	app-crypt/libsecret
 	app-misc/jq
 	app-misc/tmux
 	gnome? ( gnome-base/gnome-shell )
 "
 BDEPEND="
-	compute? ( dev-build/cmake )
+	inference? ( dev-build/cmake )
 	seat? (
 		dev-build/cmake
 		virtual/pkgconfig
@@ -60,10 +60,10 @@ src_compile() {
 	pushd host > /dev/null || die
 	cargo_src_compile
 	popd > /dev/null || die
-	if use seat || use compute; then
+	if use seat || use inference; then
 		local features=wm
 		use seat && features+=,seat
-		use compute && features+=,compute
+		use inference && features+=,inference
 		pushd seat > /dev/null || die
 		cargo_src_compile --no-default-features --features "${features}"
 		popd > /dev/null || die
@@ -85,7 +85,7 @@ src_install() {
 	systemd_douserunit "${T}/hunch-host.service"
 	dobin hunch hunch-editor hunch-browser
 	install_firefox_host
-	if use seat || use compute; then
+	if use seat || use inference; then
 		pushd seat > /dev/null || die
 		dobin "$(cargo_target_dir)/hunch-seat"
 		sed "s|@HUNCH_SEAT@|${EPREFIX}/usr/bin/hunch-seat|" \
@@ -125,7 +125,7 @@ pkg_postinst() {
 	elog "  systemctl --user restart hunch-host hunch-seat"
 	elog "Agents use the skill in ${EPREFIX}/usr/share/hunch/skills/hunch:"
 	elog "  ln -s ${EPREFIX}/usr/share/hunch/skills/hunch ~/.claude/skills/hunch"
-	if use seat || use compute; then
+	if use seat || use inference; then
 		elog "Each user runs the seat's service with:"
 		elog "  systemctl --user enable --now hunch-seat"
 	fi
